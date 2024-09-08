@@ -8,6 +8,7 @@ pygame.init()
 #BASE DE CONHECIMENTO
 KB = []
 have_gold = False
+died = False
 #Direção do DFS:
 direction = 'right'
 
@@ -1057,6 +1058,8 @@ def update_KB():
     global running
     global KB
     global have_gold
+    global points
+    global died
 
     cell = world[player_pos[0]][player_pos[1]]
     # print("cell: ",cell)
@@ -1067,9 +1070,11 @@ def update_KB():
     
     if 'W' in cell:
         print("Você foi devorado pelo Wumpus!")
+        died = True
         running = False
     elif 'P' in cell:
         print("Você caiu em um poço!")
+        died =True
         running = False
     elif 'G' in cell:
         print("Você encontrou o ouro!")
@@ -1352,8 +1357,10 @@ for item in KB:
     if 'V' in item:
         quadrados_visitados.append(item.split('V'))
         count_quadrados_visitados +=1
-if(have_gold):
+if(have_gold and not died):
     points += 100
+if died:
+    points -= 100
 print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
 print("Quadrados visitados:",quadrados_visitados)
 print("Pontuação do jogo: ",points)
