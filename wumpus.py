@@ -7,10 +7,12 @@ pygame.init()
 
 #BASE DE CONHECIMENTO
 KB = []
-
+have_gold = False
 #Direção do DFS:
 direction = 'right'
 
+#Pontuação de um jogo
+points = 0
 #cell
 cell = (0,0)
 
@@ -1054,6 +1056,7 @@ def update_KB():
     global cell
     global running
     global KB
+    global have_gold
 
     cell = world[player_pos[0]][player_pos[1]]
     # print("cell: ",cell)
@@ -1069,8 +1072,9 @@ def update_KB():
         print("Você caiu em um poço!")
         running = False
     elif 'G' in cell:
-        print("Você encontrou o ouro e venceu!")
-        running = False
+        print("Você encontrou o ouro!")
+        have_gold = True
+        # running = False
     elif 'B' in cell or 'S' in cell:
         # string = (str(player_pos[0]) + str(player_pos[1]) + NW)
         # if string not in KB:
@@ -1232,6 +1236,7 @@ def move_player_algorithyn():
     global direction
     global last_position
     global KB
+    global have_gold
 
     last_position = player_pos
     # player_pos_aux = (0,0)
@@ -1239,7 +1244,7 @@ def move_player_algorithyn():
     if (player_pos[0],player_pos[1]) not in stack:
         stack.append((player_pos[0],player_pos[1]))  # Pilha empilha a posição atual
 
-    if valid_go_back(player_pos[0],player_pos[1]): 
+    if valid_go_back(player_pos[0],player_pos[1]) or have_gold: 
         return_Stack()
     else:
         dfs()
@@ -1303,6 +1308,7 @@ while running:
         move_player_algorithyn()
         if(last_position != player_pos):
             count_player_moves += 1
+            points -= 1
         update_KB()
         logic()
         print("KB logo após player_mover: ",KB)
@@ -1346,6 +1352,8 @@ for item in KB:
     if 'V' in item:
         quadrados_visitados.append(item.split('V'))
         count_quadrados_visitados +=1
-
+if(have_gold):
+    points += 100
 print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
 print("Quadrados visitados:",quadrados_visitados)
+print("Pontuação do jogo: ",points)
