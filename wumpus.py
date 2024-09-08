@@ -249,18 +249,39 @@ def percept(perception,possibility,x_position,y_position):
                 if (string) in KB:
                     KB.remove(string)
 
+            if possibility == 'P?':
+                if validate_positionKB((x_position+1),(y_position),possibility):
+                    KB.append(str(x_position+1)+str(y_position)+possibility)
 
-            if validate_positionKB((x_position+1),(y_position),possibility):
-                KB.append(str(x_position+1)+str(y_position)+possibility)
+                if validate_positionKB((x_position-1),(y_position),possibility):
+                    KB.append(str(x_position-1)+str(y_position)+possibility)
 
-            if validate_positionKB((x_position-1),(y_position),possibility):
-                KB.append(str(x_position-1)+str(y_position)+possibility)
+                if validate_positionKB((x_position),(y_position+1),possibility):
+                    KB.append(str(x_position)+str(y_position+1)+possibility)
 
-            if validate_positionKB((x_position),(y_position+1),possibility):
-                KB.append(str(x_position)+str(y_position+1)+possibility)
+                if validate_positionKB((x_position),(y_position-1),possibility):
+                    KB.append(str(x_position)+str(y_position-1)+possibility)
 
-            if validate_positionKB((x_position),(y_position-1),possibility):
-                KB.append(str(x_position)+str(y_position-1)+possibility)
+            elif possibility == 'W?':
+                neighbourhood = list(neighbours(x_position,y_position))
+
+                neighbourhood = [item for item in neighbourhood if str(x_position)+str(y_position)+possibility in KB]
+
+                print("\n\nNeighbourhood: ",neighbourhood, "\n\n")
+
+                if not neighbourhood:
+                    if validate_positionKB((x_position+1),(y_position),possibility):
+                        KB.append(str(x_position+1)+str(y_position)+possibility)
+
+                    if validate_positionKB((x_position-1),(y_position),possibility):
+                        KB.append(str(x_position-1)+str(y_position)+possibility)
+
+                    if validate_positionKB((x_position),(y_position+1),possibility):
+                        KB.append(str(x_position)+str(y_position+1)+possibility)
+
+                    if validate_positionKB((x_position),(y_position-1),possibility):
+                        KB.append(str(x_position)+str(y_position-1)+possibility)
+
 
 #Função pra limpar KB de possibilidades já testadas
 def clear_KB(pos_x,pos_y):
@@ -291,7 +312,11 @@ def clear_KB(pos_x,pos_y):
 
         print("KB após a filtragem:", KB)
           
-        
+    # for i in range(ROWS):
+    #     for j in range(COLS):
+    #         if str(i)+str(j)+'V' in KB:
+    #             if str(i)+str(j)+'P?' in KB:
+    #                 KB = [item for item in KB if item !=str(i)+str(j)+'P?']
 
     # if(str(pos_x)+str(pos_y)+'ok') in KB:
     #     for identificador in indentificadores_de_perigo:
@@ -331,19 +356,19 @@ def deduce_S():
 
 def verify_neighbor_B(x_position,y_position):
     if validate_position((x_position+1),(y_position)):
-       if(str(x_position+1)+str(y_position)+NP) in KB and (str(x_position+1)+str(y_position)+'B') not in KB:
+       if(str(x_position+1)+str(y_position)+'V') in KB and (str(x_position+1)+str(y_position)+'B') not in KB:
            return True
 
     if validate_position((x_position-1),(y_position)):
-        if (str(x_position-1)+str(y_position)+NP) in KB and (str(x_position-1)+str(y_position)+'B') not in KB:
+        if (str(x_position-1)+str(y_position)+'V') in KB and (str(x_position-1)+str(y_position)+'B') not in KB:
             return True
 
     if validate_position((x_position),(y_position+1)):
-        if (str(x_position)+str(y_position+1)+NP) in KB and (str(x_position)+str(y_position+1)+'B') not in KB:
+        if (str(x_position)+str(y_position+1)+'V') in KB and (str(x_position)+str(y_position+1)+'B') not in KB:
             return True
 
     if validate_position((x_position),(y_position-1)):
-        if (str(x_position)+str(y_position-1)+NP) in KB and (str(x_position)+str(y_position-1)+'B') not in KB:
+        if (str(x_position)+str(y_position-1)+"V") in KB and (str(x_position)+str(y_position-1)+'B') not in KB:
             return True
     return False
 
@@ -781,12 +806,14 @@ def valid_go_back(x,y):
 
 def go(new_pos_x,new_pos_y):
     global player_pos
+    global KB
     w_string = str(new_pos_x)+str(new_pos_y)+'W'
     w_stringDoubt = str(new_pos_x)+str(new_pos_y)+'W?'
     p_string = str(new_pos_x)+str(new_pos_y)+'P'
     p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
     is_visitado = str(new_pos_x)+str(new_pos_y)+'V'
-
+    
+    print("KB usado para MOVER: ",KB)
     if validate_position(new_pos_x,new_pos_y) and w_string not in KB and w_stringDoubt not in KB and p_string not in KB and p_stringDoubt not in KB and is_visitado not in KB :
         player_pos = (new_pos_x,new_pos_y)
         # directions[0] = True
@@ -992,15 +1019,16 @@ def update_KB():
 
 
 
-
 def move_player_algorithyn():
     global player_pos
     global stack
     global running
     global direction
     global last_position
+    global KB
 
     last_position = player_pos
+    player_pos_aux = (0,0)
 
     if (player_pos[0],player_pos[1]) not in stack:
         stack.append((player_pos[0],player_pos[1]))  # Pilha empilha a posição atual
@@ -1008,10 +1036,32 @@ def move_player_algorithyn():
     if valid_go_back(player_pos[0],player_pos[1]): ########################AQUI ESTÁ O PROBLEMA
         direction = 'right'
         # print('player_pos do go back: ',player_pos)
+        run_away = False
         if stack:
             stack.pop()
             if stack:
-                player_pos = stack.pop()
+                player_pos_aux = stack.pop()
+                pos = str(player_pos_aux[0])+str(player_pos_aux[1])
+                dangers = ['W','W?']
+                for danger in dangers:
+                    string = pos + danger
+                    if string in KB:
+                        stack.append((player_pos_aux[0],player_pos_aux[1]))
+                        run_away = True
+                        break
+                if(run_away):
+                    if(go_right(player_pos[0],player_pos[1])):
+                        print("Fugi pra direita")
+                    elif(go_down(player_pos[0],player_pos[1])):
+                        print("Fugi pra baixo")
+                    elif(go_left(player_pos[0],player_pos[1])):
+                        print("Fugi pra esquerda")
+                    elif(go_up(player_pos[0],player_pos[1])):
+                        print("Fugi pra cima")
+                else:
+                    player_pos = player_pos_aux
+
+
             else:
                 # print("Player_Position: ",player_pos)
                 running = False
@@ -1063,73 +1113,7 @@ while running:
 
     # print("Player_position_pre_Kcelula: ",player_pos)
     # Verifica a célula atual
-    cell = world[player_pos[0]][player_pos[1]]
-    # print("cell: ",cell)
-    # print("last_pos: ",last_position)
-    # print("Player_position_pre_KB: ",player_pos)
-    # print("KB: ",KB)
-    # logic()
-    
-    if 'W' in cell:
-        print("Você foi devorado pelo Wumpus!")
-        running = False
-    elif 'P' in cell:
-        print("Você caiu em um poço!")
-        running = False
-    elif 'G' in cell:
-        print("Você encontrou o ouro e venceu!")
-        running = False
-    elif 'B' in cell or 'S' in cell:
-        # string = (str(player_pos[0]) + str(player_pos[1]) + NW)
-        # if string not in KB:
-        #     KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + NW)
-        if string not in KB:
-            KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + NP)
-        if string not in KB:
-            KB.append(string)
-        
-        string = (str(player_pos[0]) + str(player_pos[1]) + visitado)
-        if string not in KB:
-            KB.append(string)
-
-        if 'B' in cell:
-            perception = 'B'
-            possibility = 'P?'
-            percept(perception,possibility,player_pos[0],player_pos[1])
-        else:
-            string = str(player_pos[0])+str(player_pos[1])+NB
-            if string not in KB:
-              KB.append(string)
-        if 'S' in cell:
-            perception = 'S'
-            possibility = 'W?'
-            percept(perception,possibility,player_pos[0],player_pos[1])
-        else:
-            string = (str(player_pos[0]) + str(player_pos[1]) + NS)
-            if string not in KB:
-                KB.append(string)
-        
-    else:
-        # string = (str(player_pos[0]) + str(player_pos[1]) + 'ok')
-        # if string not in KB:
-        #     KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + NP)
-        if string not in KB:
-            KB.append(string)
-        string = str(player_pos[0])+str(player_pos[1])+NB
-        if string not in KB:
-            KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + NW)
-        if string not in KB:
-            KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + NS)
-        if string not in KB:
-            KB.append(string)
-        string = (str(player_pos[0]) + str(player_pos[1]) + visitado)
-        if string not in KB:
-            KB.append(string)
+    update_KB()
         
 
     if pause:
@@ -1144,10 +1128,14 @@ while running:
     print("KB antes do player mover: ",KB)
 ################# MOVER PLAYER #########################################################################################################################
     if count_player_moves <= random_number_up_to_5:
-        # logic()
+        logic()
         move_player_algorithyn()
         if(last_position != player_pos):
             count_player_moves += 1
+        update_KB()
+        logic()
+        print("KB logo após player_mover: ",KB)
+
         # print("PlayerPos: ",player_pos)
         # print("Direction: ",direction)
         
