@@ -17,7 +17,7 @@ cell = (0,0)
 #Vetor que indica possibilidade das dimensões:
 directions = [True,False,False,False]
 #Pilha pra DFS e voltar ao começo
-stack = []
+stack = [(0,0)]
 
 # Define cores
 WHITE = (255, 255, 255)
@@ -312,11 +312,11 @@ def clear_KB(pos_x,pos_y):
 
         print("KB após a filtragem:", KB)
           
-    # for i in range(ROWS):
-    #     for j in range(COLS):
-    #         if str(i)+str(j)+'V' in KB:
-    #             if str(i)+str(j)+'P?' in KB:
-    #                 KB = [item for item in KB if item !=str(i)+str(j)+'P?']
+    for i in range(ROWS):
+        for j in range(COLS):
+            if str(i)+str(j)+'NP' in KB:
+                if str(i)+str(j)+'P?' in KB:
+                    KB = [item for item in KB if item !=str(i)+str(j)+'P?']
 
     # if(str(pos_x)+str(pos_y)+'ok') in KB:
     #     for identificador in indentificadores_de_perigo:
@@ -822,8 +822,6 @@ def go(new_pos_x,new_pos_y):
         # directions[0] = False
         return False
 
-
-
 def go_right(x,y):
     new_pos_x = x
     new_pos_y = y+1
@@ -839,17 +837,174 @@ def go_left(x,y):
     new_pos_y = y-1
     return go(new_pos_x,new_pos_y)
 
-
 def go_up(x,y):
     new_pos_x = x-1
     new_pos_y = y
     return go(new_pos_x,new_pos_y)
+
+
+
+def go_V(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    w_stringDoubt = str(new_pos_x)+str(new_pos_y)+'W?'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_V_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and w_stringDoubt not in KB and p_string not in KB and p_stringDoubt not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_V: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_V(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_V(new_pos_x,new_pos_y)
     
+def go_down_V(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_V(new_pos_x,new_pos_y)
+
+def go_left_V(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_V(new_pos_x,new_pos_y)
+
+
+def go_up_V(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_V(new_pos_x,new_pos_y)
+
+
+def go_VW(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_VW_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and p_string not in KB and p_stringDoubt not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_VW: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_VW(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_VW(new_pos_x,new_pos_y)
+    
+def go_down_VW(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_VW(new_pos_x,new_pos_y)
+
+def go_left_VW(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_VW(new_pos_x,new_pos_y)
+
+
+def go_up_VW(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_VW(new_pos_x,new_pos_y)
+
+
+
+
+
+def go_VWP(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    # p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_VW_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and p_string not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_VW: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_VWP(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_VWP(new_pos_x,new_pos_y)
+    
+def go_down_VWP(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_VWP(new_pos_x,new_pos_y)
+
+def go_left_VWP(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_VWP(new_pos_x,new_pos_y)
+
+
+def go_up_VWP(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_VWP(new_pos_x,new_pos_y)
+
+
+
+
+    
+# go_random:
+
+def go_randon():
+    global player_pos
+    escolha = random.randint(0,3)
+    player_pos_aux = (-1,-1)
+    
+    while not validate_position(player_pos_aux):
+        match escolha:
+            case 0:
+                player_pos_aux = (player_pos[0]+1,player_pos[1])
+            case 1:
+                player_pos_aux = (player_pos[0],player_pos[1]+1)
+            case 2:
+                player_pos_aux = (player_pos[0]-1,player_pos[1])
+            case 3:
+                player_pos_aux = (player_pos[0],player_pos[1]-1)
+    player_pos = player_pos_aux
 
 def go_to(x,y):
+    global player_pos
+    global KB
     new_pos_x = x
     new_pos_y = y
-    return go(new_pos_x,new_pos_y)
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    w_stringDoubt = str(new_pos_x)+str(new_pos_y)+'W?'
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and w_stringDoubt not in KB:
+        player_pos = (new_pos_x,new_pos_y)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
 
 def dfs():
     global direction
@@ -892,55 +1047,6 @@ def dfs():
             else:
                 direction = 'right'
        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def update_KB():
     global world
@@ -1019,6 +1125,106 @@ def update_KB():
 
 
 
+
+def valid_return_stack():
+    global stack
+    global player_pos
+    global running
+    # if valid_go_back()
+
+def return_Stack():
+    global stack
+    global player_pos
+    global running
+    global direction
+
+    direction = 'right'
+        # print('player_pos do go back: ',player_pos)
+    run_away = False
+    if stack:
+        stack.pop()
+        if stack:
+            player_pos_aux = stack.pop()
+            pos = str(player_pos_aux[0])+str(player_pos_aux[1])
+            dangers = ['W','W?']
+            for danger in dangers:
+                string = pos + danger
+                if string in KB:
+                    stack.append((player_pos_aux[0],player_pos_aux[1]))
+                    if (player_pos[0],player_pos[1]) not in stack:
+                        stack.append((player_pos[0],player_pos[1])) 
+                    run_away = True
+                    break
+            if(run_away):
+                print("\n\n\n\n\nCONDIÇÂO DE FUGA")
+                if(go_right_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra direita")
+                    print("player position: ",player_pos)
+
+                elif(go_down_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra baixo")
+                    print("player position: ",player_pos)
+
+                elif(go_left_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra esquerda")
+                    print("player position: ",player_pos)
+
+                elif(go_up_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra cima")
+                    print("player position: ",player_pos)
+                else:
+                    print("\n\n\n\n\nCONDIÇÂO DE FUGA Aleatória W?")
+                    if(go_right_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra direita")
+                        print("player position: ",player_pos)
+
+                    elif(go_down_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra baixo")
+                        print("player position: ",player_pos)
+
+                    elif(go_left_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra esquerda")
+                        print("player position: ",player_pos)
+
+                    elif(go_up_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra cima")
+                        print("player position: ",player_pos)
+                        # print("ERRO")
+                    else:
+                        print("\n\n\n\n\nCONDIÇÂO DE FUGA Aleatória W?")
+                        if(go_right_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra direita")
+                            print("player position: ",player_pos)
+
+                        elif(go_down_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra baixo")
+                            print("player position: ",player_pos)
+
+                        elif(go_left_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra esquerda")
+                            print("player position: ",player_pos)
+
+                        elif(go_up_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra cima")
+                            print("player position: ",player_pos)
+                            # print("ERRO")
+                        else:
+                            go_randon()
+                            # print("FALTA IMPLEMENTAR O SEM P?")
+            else:
+                player_pos = player_pos_aux
+
+
+        else:
+            # print("Player_Position: ",player_pos)
+            running = False
+    else:
+        # print("Player_Position: ",player_pos)
+        running = False
+    
+            
+
+
 def move_player_algorithyn():
     global player_pos
     global stack
@@ -1028,52 +1234,17 @@ def move_player_algorithyn():
     global KB
 
     last_position = player_pos
-    player_pos_aux = (0,0)
+    # player_pos_aux = (0,0)
 
     if (player_pos[0],player_pos[1]) not in stack:
         stack.append((player_pos[0],player_pos[1]))  # Pilha empilha a posição atual
-    # print("\n\nStack: ",stack)
-    if valid_go_back(player_pos[0],player_pos[1]): ########################AQUI ESTÁ O PROBLEMA
-        direction = 'right'
-        # print('player_pos do go back: ',player_pos)
-        run_away = False
-        if stack:
-            stack.pop()
-            if stack:
-                player_pos_aux = stack.pop()
-                pos = str(player_pos_aux[0])+str(player_pos_aux[1])
-                dangers = ['W','W?']
-                for danger in dangers:
-                    string = pos + danger
-                    if string in KB:
-                        stack.append((player_pos_aux[0],player_pos_aux[1]))
-                        run_away = True
-                        break
-                if(run_away):
-                    if(go_right(player_pos[0],player_pos[1])):
-                        print("Fugi pra direita")
-                    elif(go_down(player_pos[0],player_pos[1])):
-                        print("Fugi pra baixo")
-                    elif(go_left(player_pos[0],player_pos[1])):
-                        print("Fugi pra esquerda")
-                    elif(go_up(player_pos[0],player_pos[1])):
-                        print("Fugi pra cima")
-                else:
-                    player_pos = player_pos_aux
 
-
-            else:
-                # print("Player_Position: ",player_pos)
-                running = False
-        else:
-            # print("Player_Position: ",player_pos)
-            running = False
+    if valid_go_back(player_pos[0],player_pos[1]): 
+        return_Stack()
     else:
         dfs()
-        # print('player_pos depois DFS: ',player_pos)
-        # update_KB()
-        # print('player_pos depois do update KB: ',player_pos)
-        # logic()
+    
+        
     
 
 def logic():
@@ -1159,6 +1330,9 @@ while running:
         print("KB depois do Wumpus mover: ",KB)
         count_player_moves = 0
 ################## MOVER WUMPUS ##################################################################################################################
+    
+    print("Stack: ",stack)
+    print("player: ",player_pos)
     window.fill(BLACK)
     draw_world()
     pygame.display.update()
