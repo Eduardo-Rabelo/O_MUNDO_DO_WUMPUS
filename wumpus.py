@@ -1,5 +1,6 @@
 import pygame
 import random
+import asyncio
 
 # Inicializa o Pygame
 pygame.init()
@@ -104,9 +105,10 @@ def neighbours(x,y):
 # Função para simular que o wumpus fez barulho ao mover:
 def wumpus_make_noise():
     global KB
-
+    print('KB antes de make noise: ',KB)
     # Limpeza inicial de 'NW' e 'NS'
     KB = [item for item in KB if  'NS' not in item]
+    KB = [item for item in KB if  'NW' not in item]
 
     for x in range(ROWS):
         for y in range(COLS):
@@ -136,14 +138,15 @@ def wumpus_make_noise():
 
     # Substitui 'W?D' por 'W?'
     KB = [item.replace('W?D', 'W?') for item in KB]
-    if any('W?' in item for item in KB):
-        for x in range(ROWS):
-            for y in range(COLS):
-                pos = str(x) + str(y)
-                if pos + 'W?' in KB:
-                    string = pos + 'NW'
-                    if string in KB:
-                        KB = [item for item in KB if string != item]
+    print("KB após make_noise: ",KB)
+    # if any('W?' in item for item in KB):
+    #     for x in range(ROWS):
+    #         for y in range(COLS):
+    #             pos = str(x) + str(y)
+    #             if pos + 'W?' in KB:
+    #                 string = pos + 'NW'
+    #                 if string in KB:
+    #                     KB = [item for item in KB if string != item]
                 # else:
                 #     string = pos + 'NW'
                 #     if string not in KB:
@@ -151,7 +154,7 @@ def wumpus_make_noise():
     # else:
     #     KB = [item for item in KB if  'NW' not in item]
 
-    print("KB atualizado:", KB)
+    # print("KB atualizado:", KB)
 
 
 # def wumpus_make_noise():
@@ -209,6 +212,7 @@ def clear_wumpus():
 
 # Função pra fazer o Wumpus mover:
 def move_wumpus():
+    print("MOVI O WUMPUS:")
     global wumpus_position
     print("wumpus position: ", wumpus_position)
     world[wumpus_position[0]][wumpus_position[1]].remove('W')
@@ -347,19 +351,19 @@ def verify_neighbor_B(x_position,y_position):
 
 def verify_neighbor_S(x_position,y_position):
     if validate_position((x_position+1),(y_position)):
-       if(str(x_position+1)+str(y_position)+NW) in KB and (str(x_position+1)+str(y_position)+'S') not in KB:
+       if(str(x_position+1)+str(y_position)+'NS') in KB and (str(x_position+1)+str(y_position)+'S') not in KB:
            return True
 
     if validate_position((x_position-1),(y_position)):
-        if (str(x_position-1)+str(y_position)+NW) in KB and (str(x_position-1)+str(y_position)+'S') not in KB:
+        if (str(x_position-1)+str(y_position)+'NS') in KB and (str(x_position-1)+str(y_position)+'S') not in KB:
             return True
 
     if validate_position((x_position),(y_position+1)):
-        if (str(x_position)+str(y_position+1)+NW) in KB and (str(x_position)+str(y_position+1)+'S') not in KB:
+        if (str(x_position)+str(y_position+1)+'NS') in KB and (str(x_position)+str(y_position+1)+'S') not in KB:
             return True
 
     if validate_position((x_position),(y_position-1)):
-        if (str(x_position)+str(y_position-1)+NW) in KB and (str(x_position)+str(y_position-1)+'S') not in KB:
+        if (str(x_position)+str(y_position-1)+'NS') in KB and (str(x_position)+str(y_position-1)+'S') not in KB:
             return True
     return False
 
@@ -519,10 +523,22 @@ def place_element(row, col, element):
             place_element(row, col - 1, 'B')
 
 # Coloca o Wumpus, ouro e poços aleatoriamente
-place_element(0, 3, 'W')##########FAZENDO TESTES
-# place_element(random.randint(0, ROWS-1), random.randint(0, COLS-1), 'G')
-# for _ in range(3):
-#     place_element(random.randint(0, ROWS-1), random.randint(0, COLS-1), 'P')
+
+def generate_start():
+    x =random.randint(0, ROWS-1)
+    y = random.randint(0,COLS-1)
+    while x == 0 and y == 0:
+        x =random.randint(0, ROWS-1)
+        y = random.randint(0,COLS-1)
+    return x,y
+
+x_w_init,y_w_init = generate_start()
+place_element(x_w_init, y_w_init, 'W')##########FAZENDO TESTES
+x_g,y_g = generate_start()
+place_element(x_g,y_g, 'G')
+for _ in range(3):
+    x_p_init,y_p_init = generate_start()
+    place_element(x_p_init, y_p_init,'P')
 
 # Posição inicial do jogador
 player_pos = [0, 0]
@@ -702,6 +718,17 @@ def pause_game():
 
 
 
+def wumpus_close():
+    global player_pos
+    global stack
+    neighbourhood = list(neighbours(player_pos))
+    for neighbour in neighbourhood:
+        if 'W' in neighbour or 'W?' in neighbour:
+            return True
+        
+    return False
+    # neighbourhood = [neighbour for neighbour in neighbourhood if 'W' not in neighbour and 'W?' not in neighbour and 'P' not in neighbour and 'P?' not in neighbour]
+    # player_pos = neighbourhood[0]
 
 
 
@@ -971,27 +998,31 @@ def move_player_algorithyn():
     global stack
     global running
     global direction
+    global last_position
+
+    last_position = player_pos
+
     if (player_pos[0],player_pos[1]) not in stack:
         stack.append((player_pos[0],player_pos[1]))  # Pilha empilha a posição atual
-    print("\n\nStack: ",stack)
+    # print("\n\nStack: ",stack)
     if valid_go_back(player_pos[0],player_pos[1]): ########################AQUI ESTÁ O PROBLEMA
         direction = 'right'
-        print('player_pos do go back: ',player_pos)
+        # print('player_pos do go back: ',player_pos)
         if stack:
             stack.pop()
             if stack:
                 player_pos = stack.pop()
             else:
-                print("Player_Position: ",player_pos)
+                # print("Player_Position: ",player_pos)
                 running = False
         else:
-            print("Player_Position: ",player_pos)
+            # print("Player_Position: ",player_pos)
             running = False
     else:
         dfs()
-        print('player_pos depois DFS: ',player_pos)
+        # print('player_pos depois DFS: ',player_pos)
         # update_KB()
-        print('player_pos depois do update KB: ',player_pos)
+        # print('player_pos depois do update KB: ',player_pos)
         # logic()
     
 
@@ -1109,24 +1140,50 @@ while running:
     # Desenha o jogo
 
 
-################## MOVER PLAYER ##################################################################################################################################
     logic()
-    move_player_algorithyn()
-    print("PlayerPos: ",player_pos)
-    print("Direction: ",direction)
-################## MOVER PLAYER ##################################################################################################################################
-
-################# MOVER WUMPUS #########################################################################################################################
-    if count_player_moves >= random_number_up_to_5:
-        random_number_up_to_5 = random.randint(1,5)
+    print("KB antes do player mover: ",KB)
+################# MOVER PLAYER #########################################################################################################################
+    if count_player_moves <= random_number_up_to_5:
+        # logic()
+        move_player_algorithyn()
+        if(last_position != player_pos):
+            count_player_moves += 1
+        # print("PlayerPos: ",player_pos)
+        # print("Direction: ",direction)
+        
+        
+        
+################# MOVER PLAYER #########################################################################################################################
+    else:
+################## MOVER WUMPUS ##################################################################################################################################
+        random_number_up_to_5 = random.randint(3,5)
+        # pygame.time.delay(1000)
         move_wumpus()
+        # wumpus_make_noise()
+        count_wumpus_moves+=1
+        # pygame.time.delay(1000)
         #Apaga os dados do wumpus por ele fazer barulho ao mover:
-        clear_wumpus()
+        if(count_wumpus_moves > 3):
+            clear_wumpus()
+            count_wumpus_moves = 0
+        update_KB()
+        logic()
+        print("KB depois do Wumpus mover: ",KB)
         count_player_moves = 0
-################# MOVER WUMPUS #########################################################################################################################
-    
+################## MOVER WUMPUS ##################################################################################################################
     window.fill(BLACK)
     draw_world()
     pygame.display.update()
 
 pygame.quit()
+
+count_quadrados_visitados = 0 
+quadrados_visitados = []
+
+for item in KB:
+    if 'V' in item:
+        quadrados_visitados.append(item.split('V'))
+        count_quadrados_visitados +=1
+
+print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
+print("Quadrados visitados:",quadrados_visitados)
