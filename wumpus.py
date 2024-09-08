@@ -105,13 +105,6 @@ def neighbours(x,y):
     return resultados
 
 
-#Função pra limpar os dados do Wumpus da KB:
-# def clear_wumpus_data():
-#     for 'W?'+str(x)+str(y) in KB:
-
-#     print("oi")
-
-
 # Função para simular que o wumpus fez barulho ao mover:
 def wumpus_make_noise():
     global KB
@@ -398,6 +391,60 @@ def super_deduction_Breeze():
                             KB.remove(string)
 
 
+def deduce_wumpus_with_KB():
+    global KB
+    count_stinks_neighbours = 0
+    stink_positions = []
+    w_doubt_positions = []
+    stink_item_in_neighbourhood = []
+    wumpus_possible_positions = []
+    for item in KB:
+        if 'S' in item and 'N' not in item:
+            stink_positions.append(item.split('S')[0]) 
+        if 'W?' in item:
+            w_doubt_positions.append(item.split('W?')[0]) 
+    
+    if len(w_doubt_positions)>0:
+        for item in w_doubt_positions:
+            neighbourhood_item = list(neighbours(int(item[0]),int(item[1])))
+            print(f"neighbourhood_item{item[0]}{item[1]}: ",neighbourhood_item)
+            count_stinks_neighbours = 0
+            if len(stink_positions)>0:
+                for stink_item in stink_positions:
+                    print("stink_item: ",stink_item)
+
+                    if (int(stink_item[0]),int(stink_item[1])) in neighbourhood_item:
+                        stink_item_in_neighbourhood.append(stink_item)
+                        print(f"stink_item_in_neighbourhood_item{item[0]}{item[1]}: ",stink_item_in_neighbourhood)
+                        count_stinks_neighbours += 1
+                if count_stinks_neighbours >=2:
+                    wumpus_possible_positions.append(item)
+
+    print("Posições em que o wumpus pode estar: ",wumpus_possible_positions)
+    if len(wumpus_possible_positions) == 1:
+        clear_wumpus()
+        KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W')
+
+
+    elif len(wumpus_possible_positions) == 2: 
+        for wumpus_pos in wumpus_possible_positions:
+            if str(wumpus_pos[0])+str(wumpus_pos[1])+'NS' in KB:
+                wumpus_possible_positions = [item for item in wumpus_possible_positions if item != str(wumpus_pos[0])+str(wumpus_pos[1])+'W?']
+
+        clear_wumpus()
+        if len(wumpus_possible_positions) == 1:
+            clear_wumpus()
+            KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W')
+        else:
+            KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W?')
+            KB.append(str(wumpus_possible_positions[1][0])+str(wumpus_possible_positions[1][1])+'W?')
+
+
+    print("Posições com cheiro (stink):", stink_positions)
+    print("Posições de dúvida sobre Wumpus:", w_doubt_positions)
+    print("Posições em que o wumpus pode estar: ",wumpus_possible_positions)
+
+
 # Função pra deduzir quais quadrados ao redor da Stink podem ser wumpus:
 def deduce_Stink():
     global KB
@@ -529,7 +576,7 @@ def generate_start():
     return x,y
 
 x_w_init,y_w_init = generate_start()
-place_element(x_w_init, y_w_init, 'W')##########FAZENDO TESTES
+place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
 x_g,y_g = generate_start()
 place_element(x_g,y_g, 'G')
 for _ in range(3):
@@ -646,21 +693,6 @@ def pause_game():
 
 
 
-# def neighbours(x,y):
-#     resultados = [(x+1,y),(x,y+1) ,(x-1,y), (x,y-1)]
-#     resultados = filter(lambda x: validate_position(x[0],x[1]), resultados)
-#     return resultados
-
-# def move_player_validated(x,y):
-#     global last_position
-#     neighbourhood = list(neighbours(x,y))
-
-#     for neighbour in neighbourhood:
-#         pos = str(neighbour[0])+str(neighbour[1])
-
-#         if pos + 'P' in KB or pos + 'P?' in KB or  pos + 'W' in KB or pos + 'W?' in KB:
-#             continue
-#         else:
 
 
 
@@ -1232,6 +1264,7 @@ def logic():
     deduce_Stink()
     deduce_P()
     deduce_S()
+    deduce_wumpus_with_KB()
 
 while running:
     pygame.time.delay(500)
