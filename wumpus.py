@@ -14,6 +14,13 @@ direction = 'right'
 
 #Pontuação de um jogo
 points = 0
+
+# contador da flecha:
+count_arrow = 1
+
+#wumpus vive?
+wumpus_is_alive = True
+
 #cell
 cell = (0,0)
 
@@ -142,68 +149,29 @@ def wumpus_make_noise():
     # Substitui 'W?D' por 'W?'
     KB = [item.replace('W?D', 'W?') for item in KB]
     print("KB após make_noise: ",KB)
-    # if any('W?' in item for item in KB):
-    #     for x in range(ROWS):
-    #         for y in range(COLS):
-    #             pos = str(x) + str(y)
-    #             if pos + 'W?' in KB:
-    #                 string = pos + 'NW'
-    #                 if string in KB:
-    #                     KB = [item for item in KB if string != item]
-                # else:
-                #     string = pos + 'NW'
-                #     if string not in KB:
-                #         KB.append(string)
-    # else:
-    #     KB = [item for item in KB if  'NW' not in item]
-
-    # print("KB atualizado:", KB)
 
 
-# def wumpus_make_noise():
-#     global KB  # Garante que estamos manipulando a variável global KB
+def shoot_arrow():
+    global player_pos
+    global KB
+    global wumpus_position
+    global count_arrow
+    global wumpus_is_alive
 
-#     # Cria uma nova lista para armazenar as marcações atualizadas
-#     new_KB = []
+    if has_neighbor(player_pos[0],player_pos[1],'W'):
+        neighbourhood = neighbours(player_pos[0],player_pos[1])
+        for neighbour in neighbourhood:
+            if str(neighbour[0]) + str(neighbour[1]) + 'W' in KB:
+                if neighbour[0] == wumpus_position[0] and neighbour[1] == wumpus_position[1]:
+                    world[wumpus_position[0]][wumpus_position[1]].remove('W')
+                    Wumpus_possibilities = neighbours(wumpus_position[0],wumpus_position[1])
+                    Wumpus_possibilities = list(Wumpus_possibilities)
 
-#     # Primeiro, localiza todos os itens que têm 'W?' e prepara para remover
-#     positions_to_expand = []
-#     for item in KB:
-#         if 'W?' in item:
-#             # Adiciona a posição para expansão
-#             pos = item.split('W?')[0]
-#             x, y = int(pos[0]), int(pos[1])
-#             positions_to_expand.append((x, y))
-
-#     # Agora, expande 'W?' para os vizinhos
-#     for (x, y) in positions_to_expand:
-#         neighbours_list = neighbours(x, y)
-#         for neighbour in neighbours_list:
-#             nx, ny = neighbour
-#             neighbour_pos = str(nx) + str(ny) + 'W?'
-#             # Adiciona 'W?' aos vizinhos se ainda não estiverem marcados
-#             if neighbour_pos not in KB and neighbour_pos not in new_KB:
-#                 new_KB.append(neighbour_pos)
-
-#         # Remove a posição original 'W?' e adiciona 'NW' em seu lugar
-#         original_pos_NW = str(x) + str(y) + 'NW'
-#         if original_pos_NW not in new_KB:
-#             new_KB.append(original_pos_NW)
-
-#     # Adiciona 'NW' para todas as outras posições que não foram marcadas
-#     for x in range(ROWS):
-#         for y in range(COLS):
-#             pos = str(x) + str(y)
-#             pos_NW = pos + 'NW'
-#             pos_W = pos + 'W?'
-            
-#             # Verifica se não é uma célula marcada como 'W?' ou já convertida para 'NW'
-#             if pos_NW not in new_KB and pos_W not in new_KB:
-#                 new_KB.append(pos_NW)
-
-#     # Atualiza KB com as novas marcações
-#     KB = new_KB
-
+                    for pos in Wumpus_possibilities:
+                        world[pos[0]][pos[1]].remove('S')
+                    count_arrow = 0
+                    wumpus_is_alive = False
+                    KB = [item for item in KB if 'W' not in item and 'S' not in item]
 
 #Limpa informações sobre o wumpus:
 def clear_wumpus():
@@ -1267,7 +1235,7 @@ def logic():
 
 while running:
     pygame.time.delay(500)
-    
+    shoot_arrow()
     # logic()
     # print("Wumpus_position:",wumpus_position)
     for event in pygame.event.get():
@@ -1308,7 +1276,7 @@ while running:
     logic()
     print("KB antes do player mover: ",KB)
 ################# MOVER PLAYER #########################################################################################################################
-    if count_player_moves <= random_number_up_to_5:
+    if count_player_moves <= random_number_up_to_5 or not wumpus_is_alive:
         logic()
         move_player_algorithyn()
         if(last_position != player_pos):
@@ -1324,10 +1292,11 @@ while running:
         
         
 ################# MOVER PLAYER #########################################################################################################################
-    else:
+    elif wumpus_is_alive:
 ################## MOVER WUMPUS ##################################################################################################################################
         random_number_up_to_5 = random.randint(3,5)
         # pygame.time.delay(1000)
+        
         move_wumpus()
         # wumpus_make_noise()
         count_wumpus_moves+=1
@@ -1361,6 +1330,9 @@ if(have_gold and not died):
     points += 100
 if died:
     points -= 100
+if count_arrow == 0:
+    points -= 10
+
 print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
 print("Quadrados visitados:",quadrados_visitados)
 print("Pontuação do jogo: ",points)
