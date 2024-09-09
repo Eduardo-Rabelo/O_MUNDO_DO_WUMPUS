@@ -71,22 +71,36 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Mundo do Wumpus")
 
 # Elementos do jogo
-PLAYER = pygame.image.load("jogador.jpg")
-WUMPUS = pygame.image.load("wumpus.jpg")
-PIT = pygame.image.load("pit.jpg")
-GOLD = pygame.image.load("gold.jpeg")
-BREEZE = pygame.image.load("breeze.jpg")
-STINK = pygame.image.load("stink.jpg")
-WUMPUS_GOLD = pygame.image.load("WG.jpg")
+# WUMPUS_GOLD = pygame.image.load("WG.jpg")
+# PLAYER = pygame.image.load("jogador.jpg")
+# WUMPUS = pygame.image.load("wumpus.jpg")
+# PIT = pygame.image.load("pit.jpg")
+# GOLD = pygame.image.load("gold.jpeg")
+# BREEZE = pygame.image.load("breeze.jpg")
+# STINK = pygame.image.load("stink.jpg")
 
+ELEMENT_IMAGES = {
+    'BS': pygame.transform.scale(pygame.image.load("BS.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'BGS': pygame.transform.scale(pygame.image.load("BGS.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'BG': pygame.transform.scale(pygame.image.load("BG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'SG': pygame.transform.scale(pygame.image.load("SG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'SB': pygame.transform.scale(pygame.image.load("SB.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'WG': pygame.transform.scale(pygame.image.load("WG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'W': pygame.transform.scale(pygame.image.load("wumpus.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'G': pygame.transform.scale(pygame.image.load("gold.jpeg"), (CELL_SIZE, CELL_SIZE)),
+    'P': pygame.transform.scale(pygame.image.load("pit.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'B': pygame.transform.scale(pygame.image.load("breeze.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'S': pygame.transform.scale(pygame.image.load("stink.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'PLAYER': pygame.transform.scale(pygame.image.load("player.jpg"), (CELL_SIZE, CELL_SIZE))
+}
 # Redimensiona as imagens para caberem nas células
-PLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE, CELL_SIZE))
-WUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE, CELL_SIZE))
-PIT = pygame.transform.scale(PIT, (CELL_SIZE, CELL_SIZE))
-GOLD = pygame.transform.scale(GOLD, (CELL_SIZE, CELL_SIZE))
-BREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE, CELL_SIZE))
-STINK = pygame.transform.scale(STINK, (CELL_SIZE, CELL_SIZE))
-WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
+# WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
+# PLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE, CELL_SIZE))
+# WUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE, CELL_SIZE))
+# PIT = pygame.transform.scale(PIT, (CELL_SIZE, CELL_SIZE))
+# GOLD = pygame.transform.scale(GOLD, (CELL_SIZE, CELL_SIZE))
+# BREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE, CELL_SIZE))
+# STINK = pygame.transform.scale(STINK, (CELL_SIZE, CELL_SIZE))
 
 #Imagens de meia célula:
 # halfPLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE/2, CELL_SIZE))
@@ -617,29 +631,53 @@ last_position = player_pos
 def draw_world():
     for row in range(ROWS):
         for col in range(COLS):
+            # Desenha a célula
             pygame.draw.rect(window, WHITE, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
             pygame.draw.rect(window, BLACK, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
             # Desenha os elementos da célula
-            for element in world[row][col]:
-                # if len(element) == 1:
-                if 'W' in element and 'G' in element:
-                    window.blit(WUMPUS_GOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                if 'W' in element:
-                    window.blit(WUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
-                elif 'G' in element:
-                    window.blit(GOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                elif 'P' in element:
-                    window.blit(PIT, (col * CELL_SIZE, row * CELL_SIZE))
-                elif 'B' in element:
-                    window.blit(BREEZE, (col * CELL_SIZE, row * CELL_SIZE))
-                elif 'S' in element:
-                    window.blit(STINK, (col * CELL_SIZE, row * CELL_SIZE))
+            elements = world[row][col]
+
+
+            if 'B' in elements and 'G' not in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BS'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements and 'G' in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BGS'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements and 'G' in elements and 'S' not in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' not in elements and 'G' in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['SG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'S' in elements and 'G' not in elements  and 'B' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['SB'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'W' in elements and 'G' in elements and 'S' not in elements and 'B' not in elements:
+                window.blit(ELEMENT_IMAGES['WG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'W' in elements:
+                window.blit(ELEMENT_IMAGES['W'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'P' in elements:
+                window.blit(ELEMENT_IMAGES['P'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'G' in elements:
+                window.blit(ELEMENT_IMAGES['G'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements:
+                window.blit(ELEMENT_IMAGES['B'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'S' in elements:
+                window.blit(ELEMENT_IMAGES['S'], (col * CELL_SIZE, row * CELL_SIZE))
+            # elif 'PLAYER' in elements:
+            #     window.blit(ELEMENT_IMAGES['PLAYER'], (col * CELL_SIZE, row * CELL_SIZE))
 
                     
 
     # Desenha o jogador
-    window.blit(PLAYER, (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE))
+    window.blit(ELEMENT_IMAGES['PLAYER'], (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE))
 
 # Função para mover o jogador
 def move_player(dx, dy):
@@ -1031,6 +1069,8 @@ def update_KB():
     elif 'G' in cell:
         print("Você encontrou o ouro!")
         have_gold = True
+        world[player_pos[0]][player_pos[1]].remove('G')
+
         # running = False
     elif 'B' in cell or 'S' in cell:
         # string = (str(player_pos[0]) + str(player_pos[1]) + NW)
