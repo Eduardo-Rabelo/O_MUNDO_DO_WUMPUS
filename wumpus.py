@@ -15,6 +15,9 @@ direction = 'right'
 #Pontuação de um jogo
 points = 0
 
+#Pontuação acumulada
+acumuled_points = 0
+
 # contador da flecha:
 count_arrow = 1
 
@@ -80,6 +83,7 @@ pygame.display.set_caption("Mundo do Wumpus")
 # STINK = pygame.image.load("stink.jpg")
 
 ELEMENT_IMAGES = {
+    'BGW': pygame.transform.scale(pygame.image.load("BGW.jpg"), (CELL_SIZE, CELL_SIZE)),
     'BS': pygame.transform.scale(pygame.image.load("BS.jpg"), (CELL_SIZE, CELL_SIZE)),
     'BGS': pygame.transform.scale(pygame.image.load("BGS.jpg"), (CELL_SIZE, CELL_SIZE)),
     'BG': pygame.transform.scale(pygame.image.load("BG.jpg"), (CELL_SIZE, CELL_SIZE)),
@@ -612,20 +616,20 @@ def generate_start():
         y = random.randint(0,COLS-1)
     return x,y
 
-x_w_init,y_w_init = generate_start()
-place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
-x_g,y_g = generate_start()
-x_g,y_g = x_w_init,y_w_init
-place_element(x_g,y_g, 'G')
-for _ in range(3):
-    x_p_init,y_p_init = generate_start()
-    place_element(x_p_init, y_p_init,'P')
+# x_w_init,y_w_init = generate_start()
+# place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
+# x_g,y_g = generate_start()
+# x_g,y_g = x_w_init,y_w_init
+# place_element(x_g,y_g, 'G')
+# for _ in range(3):
+#     x_p_init,y_p_init = generate_start()
+#     place_element(x_p_init, y_p_init,'P')
 
-# Posição inicial do jogador
-player_pos = [0, 0]
+# # Posição inicial do jogador
+# player_pos = [0, 0]
 
-# Última posição do jogador
-last_position = player_pos
+# # Última posição do jogador
+# last_position = player_pos
 
 # Função para desenhar a matriz
 def draw_world():
@@ -638,6 +642,9 @@ def draw_world():
             # Desenha os elementos da célula
             elements = world[row][col]
 
+
+            if 'B' in elements and 'G' in elements and 'S' not in elements and 'W' in elements:
+                window.blit(ELEMENT_IMAGES['BGW'], (col * CELL_SIZE, row * CELL_SIZE))
 
             if 'B' in elements and 'G' not in elements and 'S' in elements and 'W' not in elements:
                 window.blit(ELEMENT_IMAGES['BS'], (col * CELL_SIZE, row * CELL_SIZE))
@@ -1258,6 +1265,29 @@ def logic():
     deduce_S()
     deduce_wumpus_with_KB()
 
+
+
+
+
+
+
+x_w_init,y_w_init = generate_start()
+place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
+x_g,y_g = generate_start()
+place_element(x_g,y_g, 'G')
+for _ in range(3):
+    x_p_init,y_p_init = generate_start()
+    place_element(x_p_init, y_p_init,'P')
+
+# Posição inicial do jogador
+player_pos = [0, 0]
+
+# Última posição do jogador
+last_position = player_pos
+
+draw_world()
+pygame.display.update()
+
 while running:
     print(f"Posição wumpus pra matar(WumpusPos={wumpus_position}): ",world[wumpus_position[0]][wumpus_position[1]])
     if 'P' in world[wumpus_position[0]][wumpus_position[1]]:
@@ -1362,6 +1392,7 @@ if died:
 if count_arrow == 0:
     points -= 10
 
+acumuled_points += points
 print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
 print("Quadrados visitados:",quadrados_visitados)
 print("Pontuação do jogo: ",points)

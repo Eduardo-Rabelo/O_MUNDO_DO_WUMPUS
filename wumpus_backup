@@ -7,25 +7,25 @@ pygame.init()
 
 #BASE DE CONHECIMENTO
 KB = []
-
+have_gold = False
+died = False
 #Direção do DFS:
 direction = 'right'
 
+#Pontuação de um jogo
+points = 0
+
+#Pontuação acumulada
+acumuled_points = 0
+
+# contador da flecha:
+count_arrow = 1
+
+#wumpus vive?
+wumpus_is_alive = True
+
 #cell
 cell = (0,0)
-
-#Vetor que indica possibilidade das dimensões:
-directions = [True,False,False,False]
-#Pilha pra DFS e voltar ao começo
-stack = []
-
-# Define cores
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-last_position = (0,0)
-
-visitado = 'V'
 
 #Posição do wumpus pra atualizar ele no jogo(Personagem não sabe da wumpus_position)
 wumpus_position = [0,0]
@@ -35,6 +35,26 @@ count_wumpus_moves = 0
 
 #número aleatório de turnos para mover o wumpus
 random_number_up_to_5 = random.randint(3,5)
+
+#Vetor que indica possibilidade das dimensões:
+directions = [True,False,False,False]
+
+
+last_position = (0,0)
+
+#Pilha pra DFS e voltar ao começo
+stack = [(0,0)]
+
+# pause
+pause = False
+
+# Define cores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+
+
+visitado = 'V'
 
 # Identificador não poço:
 NP = 'NP'
@@ -54,35 +74,52 @@ WIDTH, HEIGHT = 600, 600
 ROWS, COLS = 4, 4
 CELL_SIZE = WIDTH // COLS
 
-# pause
-pause = False
+
 # Define a janela do jogo
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Mundo do Wumpus")
 
 # Elementos do jogo
-PLAYER = pygame.image.load("jogador.jpg")
-WUMPUS = pygame.image.load("wumpus.jpg")
-PIT = pygame.image.load("pit.jpg")
-GOLD = pygame.image.load("gold.jpeg")
-BREEZE = pygame.image.load("breeze.jpg")
-STINK = pygame.image.load("stink.jpg")
+# WUMPUS_GOLD = pygame.image.load("WG.jpg")
+# PLAYER = pygame.image.load("jogador.jpg")
+# WUMPUS = pygame.image.load("wumpus.jpg")
+# PIT = pygame.image.load("pit.jpg")
+# GOLD = pygame.image.load("gold.jpeg")
+# BREEZE = pygame.image.load("breeze.jpg")
+# STINK = pygame.image.load("stink.jpg")
 
+ELEMENT_IMAGES = {
+    'BS': pygame.transform.scale(pygame.image.load("BS.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'BGS': pygame.transform.scale(pygame.image.load("BGS.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'BG': pygame.transform.scale(pygame.image.load("BG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'SG': pygame.transform.scale(pygame.image.load("SG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'SB': pygame.transform.scale(pygame.image.load("SB.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'WG': pygame.transform.scale(pygame.image.load("WG.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'W': pygame.transform.scale(pygame.image.load("wumpus.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'G': pygame.transform.scale(pygame.image.load("gold.jpeg"), (CELL_SIZE, CELL_SIZE)),
+    'P': pygame.transform.scale(pygame.image.load("pit.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'B': pygame.transform.scale(pygame.image.load("breeze.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'S': pygame.transform.scale(pygame.image.load("stink.jpg"), (CELL_SIZE, CELL_SIZE)),
+    'PLAYER': pygame.transform.scale(pygame.image.load("player.jpg"), (CELL_SIZE, CELL_SIZE))
+}
 # Redimensiona as imagens para caberem nas células
-PLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE, CELL_SIZE))
-WUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE, CELL_SIZE))
-PIT = pygame.transform.scale(PIT, (CELL_SIZE, CELL_SIZE))
-GOLD = pygame.transform.scale(GOLD, (CELL_SIZE, CELL_SIZE))
-BREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE, CELL_SIZE))
-STINK = pygame.transform.scale(STINK, (CELL_SIZE, CELL_SIZE))
+# WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
+# PLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE, CELL_SIZE))
+# WUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE, CELL_SIZE))
+# PIT = pygame.transform.scale(PIT, (CELL_SIZE, CELL_SIZE))
+# GOLD = pygame.transform.scale(GOLD, (CELL_SIZE, CELL_SIZE))
+# BREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE, CELL_SIZE))
+# STINK = pygame.transform.scale(STINK, (CELL_SIZE, CELL_SIZE))
 
 #Imagens de meia célula:
-halfPLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE/2, CELL_SIZE))
-halfWUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE/2, CELL_SIZE))
-halfPIT = pygame.transform.scale(PIT, (CELL_SIZE/2, CELL_SIZE))
-halfGOLD = pygame.transform.scale(GOLD, (CELL_SIZE/2, CELL_SIZE))
-halfBREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE/2, CELL_SIZE))
-halfSTINK = pygame.transform.scale(STINK, (CELL_SIZE/2, CELL_SIZE))
+# halfPLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE/2, CELL_SIZE))
+# halfWUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE/2, CELL_SIZE))
+# halfPIT = pygame.transform.scale(PIT, (CELL_SIZE/2, CELL_SIZE))
+# halfGOLD = pygame.transform.scale(GOLD, (CELL_SIZE/2, CELL_SIZE))
+# halfBREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE/2, CELL_SIZE))
+# halfSTINK = pygame.transform.scale(STINK, (CELL_SIZE/2, CELL_SIZE))
+# WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
+
 
 
 # Matriz do jogo
@@ -93,13 +130,6 @@ def neighbours(x,y):
     resultados = [(x+1,y),(x,y+1) ,(x-1,y), (x,y-1)]
     resultados = filter(lambda x: validate_position(x[0],x[1]), resultados)
     return resultados
-
-
-#Função pra limpar os dados do Wumpus da KB:
-# def clear_wumpus_data():
-#     for 'W?'+str(x)+str(y) in KB:
-
-#     print("oi")
 
 
 # Função para simular que o wumpus fez barulho ao mover:
@@ -139,68 +169,46 @@ def wumpus_make_noise():
     # Substitui 'W?D' por 'W?'
     KB = [item.replace('W?D', 'W?') for item in KB]
     print("KB após make_noise: ",KB)
-    # if any('W?' in item for item in KB):
-    #     for x in range(ROWS):
-    #         for y in range(COLS):
-    #             pos = str(x) + str(y)
-    #             if pos + 'W?' in KB:
-    #                 string = pos + 'NW'
-    #                 if string in KB:
-    #                     KB = [item for item in KB if string != item]
-                # else:
-                #     string = pos + 'NW'
-                #     if string not in KB:
-                #         KB.append(string)
-    # else:
-    #     KB = [item for item in KB if  'NW' not in item]
-
-    # print("KB atualizado:", KB)
 
 
-# def wumpus_make_noise():
-#     global KB  # Garante que estamos manipulando a variável global KB
+def shoot_arrow():
+    global player_pos
+    global KB
+    global wumpus_position
+    global count_arrow
+    global wumpus_is_alive
 
-#     # Cria uma nova lista para armazenar as marcações atualizadas
-#     new_KB = []
+    if has_neighbor(player_pos[0],player_pos[1],'W'):
+        neighbourhood = neighbours(player_pos[0],player_pos[1])
+        for neighbour in neighbourhood:
+            if str(neighbour[0]) + str(neighbour[1]) + 'W' in KB:
+                if neighbour[0] == wumpus_position[0] and neighbour[1] == wumpus_position[1]:
+                    world[wumpus_position[0]][wumpus_position[1]].remove('W')
+                    Wumpus_possibilities = neighbours(wumpus_position[0],wumpus_position[1])
+                    Wumpus_possibilities = list(Wumpus_possibilities)
 
-#     # Primeiro, localiza todos os itens que têm 'W?' e prepara para remover
-#     positions_to_expand = []
-#     for item in KB:
-#         if 'W?' in item:
-#             # Adiciona a posição para expansão
-#             pos = item.split('W?')[0]
-#             x, y = int(pos[0]), int(pos[1])
-#             positions_to_expand.append((x, y))
+                    for pos in Wumpus_possibilities:
+                        world[pos[0]][pos[1]].remove('S')
+                    count_arrow = 0
+                    wumpus_is_alive = False
+                    KB = [item for item in KB if 'W' not in item and 'S' not in item]
 
-#     # Agora, expande 'W?' para os vizinhos
-#     for (x, y) in positions_to_expand:
-#         neighbours_list = neighbours(x, y)
-#         for neighbour in neighbours_list:
-#             nx, ny = neighbour
-#             neighbour_pos = str(nx) + str(ny) + 'W?'
-#             # Adiciona 'W?' aos vizinhos se ainda não estiverem marcados
-#             if neighbour_pos not in KB and neighbour_pos not in new_KB:
-#                 new_KB.append(neighbour_pos)
+def kill_wumpus():
+    global player_pos
+    global KB
+    global wumpus_position
+    global wumpus_is_alive
 
-#         # Remove a posição original 'W?' e adiciona 'NW' em seu lugar
-#         original_pos_NW = str(x) + str(y) + 'NW'
-#         if original_pos_NW not in new_KB:
-#             new_KB.append(original_pos_NW)
 
-#     # Adiciona 'NW' para todas as outras posições que não foram marcadas
-#     for x in range(ROWS):
-#         for y in range(COLS):
-#             pos = str(x) + str(y)
-#             pos_NW = pos + 'NW'
-#             pos_W = pos + 'W?'
-            
-#             # Verifica se não é uma célula marcada como 'W?' ou já convertida para 'NW'
-#             if pos_NW not in new_KB and pos_W not in new_KB:
-#                 new_KB.append(pos_NW)
+    world[wumpus_position[0]][wumpus_position[1]].remove('W')
+    Wumpus_possibilities = neighbours(wumpus_position[0],wumpus_position[1])
+    Wumpus_possibilities = list(Wumpus_possibilities)
 
-#     # Atualiza KB com as novas marcações
-#     KB = new_KB
-
+    for pos in Wumpus_possibilities:
+        world[pos[0]][pos[1]].remove('S')
+    
+    wumpus_is_alive = False
+    KB = [item for item in KB if 'W' not in item and 'S' not in item]
 
 #Limpa informações sobre o wumpus:
 def clear_wumpus():
@@ -228,6 +236,8 @@ def move_wumpus():
     place_element(wumpus_new_position[0], wumpus_new_position[1], 'W')
     print("função pra mover o wumpus")
     wumpus_make_noise()
+
+ 
 
 
 #Função pra encher kb
@@ -312,11 +322,11 @@ def clear_KB(pos_x,pos_y):
 
         print("KB após a filtragem:", KB)
           
-    # for i in range(ROWS):
-    #     for j in range(COLS):
-    #         if str(i)+str(j)+'V' in KB:
-    #             if str(i)+str(j)+'P?' in KB:
-    #                 KB = [item for item in KB if item !=str(i)+str(j)+'P?']
+    for i in range(ROWS):
+        for j in range(COLS):
+            if str(i)+str(j)+'NP' in KB:
+                if str(i)+str(j)+'P?' in KB:
+                    KB = [item for item in KB if item !=str(i)+str(j)+'P?']
 
     # if(str(pos_x)+str(pos_y)+'ok') in KB:
     #     for identificador in indentificadores_de_perigo:
@@ -425,6 +435,60 @@ def super_deduction_Breeze():
                         string = str(neighbor[0]) + str(neighbor[1]) + 'P?'
                         if string in KB:
                             KB.remove(string)
+
+
+def deduce_wumpus_with_KB():
+    global KB
+    count_stinks_neighbours = 0
+    stink_positions = []
+    w_doubt_positions = []
+    stink_item_in_neighbourhood = []
+    wumpus_possible_positions = []
+    for item in KB:
+        if 'S' in item and 'N' not in item:
+            stink_positions.append(item.split('S')[0]) 
+        if 'W?' in item:
+            w_doubt_positions.append(item.split('W?')[0]) 
+    
+    if len(w_doubt_positions)>0:
+        for item in w_doubt_positions:
+            neighbourhood_item = list(neighbours(int(item[0]),int(item[1])))
+            print(f"neighbourhood_item{item[0]}{item[1]}: ",neighbourhood_item)
+            count_stinks_neighbours = 0
+            if len(stink_positions)>0:
+                for stink_item in stink_positions:
+                    print("stink_item: ",stink_item)
+
+                    if (int(stink_item[0]),int(stink_item[1])) in neighbourhood_item:
+                        stink_item_in_neighbourhood.append(stink_item)
+                        print(f"stink_item_in_neighbourhood_item{item[0]}{item[1]}: ",stink_item_in_neighbourhood)
+                        count_stinks_neighbours += 1
+                if count_stinks_neighbours >=2:
+                    wumpus_possible_positions.append(item)
+
+    print("Posições em que o wumpus pode estar: ",wumpus_possible_positions)
+    if len(wumpus_possible_positions) == 1:
+        clear_wumpus()
+        KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W')
+
+
+    elif len(wumpus_possible_positions) == 2: 
+        for wumpus_pos in wumpus_possible_positions:
+            if str(wumpus_pos[0])+str(wumpus_pos[1])+'NS' in KB:
+                wumpus_possible_positions = [item for item in wumpus_possible_positions if item != str(wumpus_pos[0])+str(wumpus_pos[1])+'W?']
+
+        clear_wumpus()
+        if len(wumpus_possible_positions) == 1:
+            clear_wumpus()
+            KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W')
+        else:
+            KB.append(str(wumpus_possible_positions[0][0])+str(wumpus_possible_positions[0][1])+'W?')
+            KB.append(str(wumpus_possible_positions[1][0])+str(wumpus_possible_positions[1][1])+'W?')
+
+
+    print("Posições com cheiro (stink):", stink_positions)
+    print("Posições de dúvida sobre Wumpus:", w_doubt_positions)
+    print("Posições em que o wumpus pode estar: ",wumpus_possible_positions)
 
 
 # Função pra deduzir quais quadrados ao redor da Stink podem ser wumpus:
@@ -557,58 +621,72 @@ def generate_start():
         y = random.randint(0,COLS-1)
     return x,y
 
-x_w_init,y_w_init = generate_start()
-place_element(x_w_init, y_w_init, 'W')##########FAZENDO TESTES
-x_g,y_g = generate_start()
-place_element(x_g,y_g, 'G')
-for _ in range(3):
-    x_p_init,y_p_init = generate_start()
-    place_element(x_p_init, y_p_init,'P')
+# x_w_init,y_w_init = generate_start()
+# place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
+# x_g,y_g = generate_start()
+# x_g,y_g = x_w_init,y_w_init
+# place_element(x_g,y_g, 'G')
+# for _ in range(3):
+#     x_p_init,y_p_init = generate_start()
+#     place_element(x_p_init, y_p_init,'P')
 
-# Posição inicial do jogador
-player_pos = [0, 0]
+# # Posição inicial do jogador
+# player_pos = [0, 0]
 
-# Última posição do jogador
-last_position = player_pos
+# # Última posição do jogador
+# last_position = player_pos
 
 # Função para desenhar a matriz
 def draw_world():
     for row in range(ROWS):
         for col in range(COLS):
+            # Desenha a célula
             pygame.draw.rect(window, WHITE, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
             pygame.draw.rect(window, BLACK, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
             # Desenha os elementos da célula
-            for element in world[row][col]:
-                if len(element) == 1:
-                    if 'W' in element:
-                        window.blit(WUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'G' in element:
-                        window.blit(GOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'P' in element:
-                        window.blit(PIT, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'B' in element:
-                        window.blit(BREEZE, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'S' in element:
-                        window.blit(STINK, (col * CELL_SIZE, row * CELL_SIZE))
+            elements = world[row][col]
 
-                elif len(element) == 2:
 
-                    if 'W' in element:
-                        window.blit(halfWUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'G' in element:
-                        window.blit(halfGOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'P' in element:
-                        window.blit(halfPIT, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'B' in element:
-                        window.blit(halfBREEZE, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'S' in element:
-                        window.blit(halfSTINK, (col * CELL_SIZE, row * CELL_SIZE))
+            if 'B' in elements and 'G' not in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BS'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements and 'G' in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BGS'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements and 'G' in elements and 'S' not in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['BG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' not in elements and 'G' in elements and 'S' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['SG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'S' in elements and 'G' not in elements  and 'B' in elements and 'W' not in elements:
+                window.blit(ELEMENT_IMAGES['SB'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'W' in elements and 'G' in elements and 'S' not in elements and 'B' not in elements:
+                window.blit(ELEMENT_IMAGES['WG'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'W' in elements:
+                window.blit(ELEMENT_IMAGES['W'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'P' in elements:
+                window.blit(ELEMENT_IMAGES['P'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'G' in elements:
+                window.blit(ELEMENT_IMAGES['G'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'B' in elements:
+                window.blit(ELEMENT_IMAGES['B'], (col * CELL_SIZE, row * CELL_SIZE))
+
+            elif 'S' in elements:
+                window.blit(ELEMENT_IMAGES['S'], (col * CELL_SIZE, row * CELL_SIZE))
+            # elif 'PLAYER' in elements:
+            #     window.blit(ELEMENT_IMAGES['PLAYER'], (col * CELL_SIZE, row * CELL_SIZE))
 
                     
 
     # Desenha o jogador
-    window.blit(PLAYER, (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE))
+    window.blit(ELEMENT_IMAGES['PLAYER'], (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE))
 
 # Função para mover o jogador
 def move_player(dx, dy):
@@ -665,82 +743,6 @@ def pause_game():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     paused = False  # Sai do loop quando 'P' é pressionado
-
-        # Exemplo de texto indicando que o jogo está pausado
-        # world.fill((0, 0, 0))
-        # font = pygame.font.Font(None, 74)
-        # text = font.render("Jogo Pausado. Aperte 'P' para continuar.", True, (255, 255, 255))
-        # world.blit(text, (50, 250))
-        # pygame.display.flip()
-
-
-
-# def neighbours(x,y):
-#     resultados = [(x+1,y),(x,y+1) ,(x-1,y), (x,y-1)]
-#     resultados = filter(lambda x: validate_position(x[0],x[1]), resultados)
-#     return resultados
-
-# def move_player_validated(x,y):
-#     global last_position
-#     neighbourhood = list(neighbours(x,y))
-
-#     for neighbour in neighbourhood:
-#         pos = str(neighbour[0])+str(neighbour[1])
-
-#         if pos + 'P' in KB or pos + 'P?' in KB or  pos + 'W' in KB or pos + 'W?' in KB:
-#             continue
-#         else:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def wumpus_close():
@@ -822,8 +824,6 @@ def go(new_pos_x,new_pos_y):
         # directions[0] = False
         return False
 
-
-
 def go_right(x,y):
     new_pos_x = x
     new_pos_y = y+1
@@ -839,17 +839,174 @@ def go_left(x,y):
     new_pos_y = y-1
     return go(new_pos_x,new_pos_y)
 
-
 def go_up(x,y):
     new_pos_x = x-1
     new_pos_y = y
     return go(new_pos_x,new_pos_y)
+
+
+
+def go_V(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    w_stringDoubt = str(new_pos_x)+str(new_pos_y)+'W?'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_V_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and w_stringDoubt not in KB and p_string not in KB and p_stringDoubt not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_V: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_V(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_V(new_pos_x,new_pos_y)
     
+def go_down_V(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_V(new_pos_x,new_pos_y)
+
+def go_left_V(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_V(new_pos_x,new_pos_y)
+
+
+def go_up_V(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_V(new_pos_x,new_pos_y)
+
+
+def go_VW(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_VW_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and p_string not in KB and p_stringDoubt not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_VW: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_VW(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_VW(new_pos_x,new_pos_y)
+    
+def go_down_VW(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_VW(new_pos_x,new_pos_y)
+
+def go_left_VW(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_VW(new_pos_x,new_pos_y)
+
+
+def go_up_VW(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_VW(new_pos_x,new_pos_y)
+
+
+
+
+
+def go_VWP(new_pos_x,new_pos_y):
+    global player_pos
+    global KB
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    p_string = str(new_pos_x)+str(new_pos_y)+'P'
+    # p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
+    print("player pos no go_VWP_antes de mudar: ",player_pos)
+    print("x,y:",new_pos_x," ",new_pos_y)
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and p_string not in KB :
+        player_pos = (new_pos_x,new_pos_y)
+        print("player pos no go_VWP: ",player_pos)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
+
+def go_right_VWP(x,y):
+    new_pos_x = x
+    new_pos_y = y+1
+    return go_VWP(new_pos_x,new_pos_y)
+    
+def go_down_VWP(x,y):
+    new_pos_x = x+1
+    new_pos_y = y
+    return go_VWP(new_pos_x,new_pos_y)
+
+def go_left_VWP(x,y):
+    new_pos_x = x
+    new_pos_y = y-1
+    return go_VWP(new_pos_x,new_pos_y)
+
+
+def go_up_VWP(x,y):
+    new_pos_x = x-1
+    new_pos_y = y
+    return go_VWP(new_pos_x,new_pos_y)
+
+
+
+
+    
+# go_random:
+
+def go_randon():
+    global player_pos
+    escolha = random.randint(0,3)
+    player_pos_aux = (-1,-1)
+    
+    while not validate_position(player_pos_aux):
+        match escolha:
+            case 0:
+                player_pos_aux = (player_pos[0]+1,player_pos[1])
+            case 1:
+                player_pos_aux = (player_pos[0],player_pos[1]+1)
+            case 2:
+                player_pos_aux = (player_pos[0]-1,player_pos[1])
+            case 3:
+                player_pos_aux = (player_pos[0],player_pos[1]-1)
+    player_pos = player_pos_aux
 
 def go_to(x,y):
+    global player_pos
+    global KB
     new_pos_x = x
     new_pos_y = y
-    return go(new_pos_x,new_pos_y)
+    w_string = str(new_pos_x)+str(new_pos_y)+'W'
+    w_stringDoubt = str(new_pos_x)+str(new_pos_y)+'W?'
+    print("KB usado para MOVER: ",KB)
+    if validate_position(new_pos_x,new_pos_y) and w_string not in KB and w_stringDoubt not in KB:
+        player_pos = (new_pos_x,new_pos_y)
+        # directions[0] = True
+        return True
+    else:
+        # directions[0] = False
+        return False
 
 def dfs():
     global direction
@@ -893,61 +1050,15 @@ def dfs():
                 direction = 'right'
        
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def update_KB():
     global world
     global player_pos
     global cell
     global running
     global KB
+    global have_gold
+    global points
+    global died
 
     cell = world[player_pos[0]][player_pos[1]]
     # print("cell: ",cell)
@@ -958,13 +1069,18 @@ def update_KB():
     
     if 'W' in cell:
         print("Você foi devorado pelo Wumpus!")
+        died = True
         running = False
     elif 'P' in cell:
         print("Você caiu em um poço!")
+        died =True
         running = False
     elif 'G' in cell:
-        print("Você encontrou o ouro e venceu!")
-        running = False
+        print("Você encontrou o ouro!")
+        have_gold = True
+        world[player_pos[0]][player_pos[1]].remove('G')
+
+        # running = False
     elif 'B' in cell or 'S' in cell:
         # string = (str(player_pos[0]) + str(player_pos[1]) + NW)
         # if string not in KB:
@@ -1019,6 +1135,106 @@ def update_KB():
 
 
 
+
+def valid_return_stack():
+    global stack
+    global player_pos
+    global running
+    # if valid_go_back()
+
+def return_Stack():
+    global stack
+    global player_pos
+    global running
+    global direction
+
+    direction = 'right'
+        # print('player_pos do go back: ',player_pos)
+    run_away = False
+    if stack:
+        stack.pop()
+        if stack:
+            player_pos_aux = stack.pop()
+            pos = str(player_pos_aux[0])+str(player_pos_aux[1])
+            dangers = ['W','W?']
+            for danger in dangers:
+                string = pos + danger
+                if string in KB:
+                    stack.append((player_pos_aux[0],player_pos_aux[1]))
+                    if (player_pos[0],player_pos[1]) not in stack:
+                        stack.append((player_pos[0],player_pos[1])) 
+                    run_away = True
+                    break
+            if(run_away):
+                print("\n\n\n\n\nCONDIÇÂO DE FUGA")
+                if(go_right_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra direita")
+                    print("player position: ",player_pos)
+
+                elif(go_down_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra baixo")
+                    print("player position: ",player_pos)
+
+                elif(go_left_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra esquerda")
+                    print("player position: ",player_pos)
+
+                elif(go_up_V(player_pos[0],player_pos[1])):
+                    print("Fugi pra cima")
+                    print("player position: ",player_pos)
+                else:
+                    print("\n\n\n\n\nCONDIÇÂO DE FUGA Aleatória W?")
+                    if(go_right_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra direita")
+                        print("player position: ",player_pos)
+
+                    elif(go_down_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra baixo")
+                        print("player position: ",player_pos)
+
+                    elif(go_left_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra esquerda")
+                        print("player position: ",player_pos)
+
+                    elif(go_up_VW(player_pos[0],player_pos[1])):
+                        print("Fugi pra cima")
+                        print("player position: ",player_pos)
+                        # print("ERRO")
+                    else:
+                        print("\n\n\n\n\nCONDIÇÂO DE FUGA Aleatória W?")
+                        if(go_right_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra direita")
+                            print("player position: ",player_pos)
+
+                        elif(go_down_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra baixo")
+                            print("player position: ",player_pos)
+
+                        elif(go_left_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra esquerda")
+                            print("player position: ",player_pos)
+
+                        elif(go_up_VWP(player_pos[0],player_pos[1])):
+                            print("Fugi pra cima")
+                            print("player position: ",player_pos)
+                            # print("ERRO")
+                        else:
+                            go_randon()
+                            # print("FALTA IMPLEMENTAR O SEM P?")
+            else:
+                player_pos = player_pos_aux
+
+
+        else:
+            # print("Player_Position: ",player_pos)
+            running = False
+    else:
+        # print("Player_Position: ",player_pos)
+        running = False
+    
+            
+
+
 def move_player_algorithyn():
     global player_pos
     global stack
@@ -1026,54 +1242,20 @@ def move_player_algorithyn():
     global direction
     global last_position
     global KB
+    global have_gold
 
     last_position = player_pos
-    player_pos_aux = (0,0)
+    # player_pos_aux = (0,0)
 
     if (player_pos[0],player_pos[1]) not in stack:
         stack.append((player_pos[0],player_pos[1]))  # Pilha empilha a posição atual
-    # print("\n\nStack: ",stack)
-    if valid_go_back(player_pos[0],player_pos[1]): ########################AQUI ESTÁ O PROBLEMA
-        direction = 'right'
-        # print('player_pos do go back: ',player_pos)
-        run_away = False
-        if stack:
-            stack.pop()
-            if stack:
-                player_pos_aux = stack.pop()
-                pos = str(player_pos_aux[0])+str(player_pos_aux[1])
-                dangers = ['W','W?']
-                for danger in dangers:
-                    string = pos + danger
-                    if string in KB:
-                        stack.append((player_pos_aux[0],player_pos_aux[1]))
-                        run_away = True
-                        break
-                if(run_away):
-                    if(go_right(player_pos[0],player_pos[1])):
-                        print("Fugi pra direita")
-                    elif(go_down(player_pos[0],player_pos[1])):
-                        print("Fugi pra baixo")
-                    elif(go_left(player_pos[0],player_pos[1])):
-                        print("Fugi pra esquerda")
-                    elif(go_up(player_pos[0],player_pos[1])):
-                        print("Fugi pra cima")
-                else:
-                    player_pos = player_pos_aux
 
-
-            else:
-                # print("Player_Position: ",player_pos)
-                running = False
-        else:
-            # print("Player_Position: ",player_pos)
-            running = False
+    if valid_go_back(player_pos[0],player_pos[1]) or have_gold: 
+        return_Stack()
     else:
         dfs()
-        # print('player_pos depois DFS: ',player_pos)
-        # update_KB()
-        # print('player_pos depois do update KB: ',player_pos)
-        # logic()
+    
+        
     
 
 def logic():
@@ -1083,10 +1265,39 @@ def logic():
     deduce_Stink()
     deduce_P()
     deduce_S()
+    deduce_wumpus_with_KB()
+
+
+
+
+
+
+
+x_w_init,y_w_init = generate_start()
+place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
+x_g,y_g = generate_start()
+x_g,y_g = x_w_init,y_w_init
+place_element(x_g,y_g, 'G')
+for _ in range(3):
+    x_p_init,y_p_init = generate_start()
+    place_element(x_p_init, y_p_init,'P')
+
+# Posição inicial do jogador
+player_pos = [0, 0]
+
+# Última posição do jogador
+last_position = player_pos
+
+draw_world()
+pygame.display.update()
 
 while running:
+    print(f"Posição wumpus pra matar(WumpusPos={wumpus_position}): ",world[wumpus_position[0]][wumpus_position[1]])
+    if 'P' in world[wumpus_position[0]][wumpus_position[1]]:
+        kill_wumpus()
+        wumpus_position = (0,0)
     pygame.time.delay(500)
-    
+    shoot_arrow()
     # logic()
     # print("Wumpus_position:",wumpus_position)
     for event in pygame.event.get():
@@ -1127,11 +1338,12 @@ while running:
     logic()
     print("KB antes do player mover: ",KB)
 ################# MOVER PLAYER #########################################################################################################################
-    if count_player_moves <= random_number_up_to_5:
+    if count_player_moves <= random_number_up_to_5 or not wumpus_is_alive:
         logic()
         move_player_algorithyn()
         if(last_position != player_pos):
             count_player_moves += 1
+            points -= 1
         update_KB()
         logic()
         print("KB logo após player_mover: ",KB)
@@ -1142,10 +1354,11 @@ while running:
         
         
 ################# MOVER PLAYER #########################################################################################################################
-    else:
+    elif wumpus_is_alive:
 ################## MOVER WUMPUS ##################################################################################################################################
         random_number_up_to_5 = random.randint(3,5)
         # pygame.time.delay(1000)
+        
         move_wumpus()
         # wumpus_make_noise()
         count_wumpus_moves+=1
@@ -1159,11 +1372,14 @@ while running:
         print("KB depois do Wumpus mover: ",KB)
         count_player_moves = 0
 ################## MOVER WUMPUS ##################################################################################################################
+    
+    print("Stack: ",stack)
+    print("player: ",player_pos)
     window.fill(BLACK)
     draw_world()
     pygame.display.update()
 
-pygame.quit()
+# pygame.quit()
 
 count_quadrados_visitados = 0 
 quadrados_visitados = []
@@ -1172,6 +1388,214 @@ for item in KB:
     if 'V' in item:
         quadrados_visitados.append(item.split('V'))
         count_quadrados_visitados +=1
+if(have_gold and not died):
+    points += 100
+if died:
+    points -= 100
+if count_arrow == 0:
+    points -= 10
 
+acumuled_points += points
 print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
 print("Quadrados visitados:",quadrados_visitados)
+print("Pontuação do jogo: ",points)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############# FOR GIGANTESCO ######################################################################################################################################
+
+for iteration in range(20):
+    # pygame.init()
+    # Matriz do jogo
+    world = [[[] for _ in range(COLS)] for _ in range(ROWS)]
+    #BASE DE CONHECIMENTO
+    KB = []
+    have_gold = False
+    died = False
+    #Direção do DFS:
+    direction = 'right'
+
+    #Pontuação de um jogo
+    points = 0
+
+    #Pontuação acumulada
+    acumuled_points = 0
+
+    # contador da flecha:
+    count_arrow = 1
+
+    #wumpus vive?
+    wumpus_is_alive = True
+
+    #cell
+    cell = (0,0)
+
+    #Posição do wumpus pra atualizar ele no jogo(Personagem não sabe da wumpus_position)
+    wumpus_position = [0,0]
+
+    #Contador de quantas vezes o wumpus moveu:
+    count_wumpus_moves = 0
+
+    #número aleatório de turnos para mover o wumpus
+    random_number_up_to_5 = random.randint(3,5)
+
+    #Vetor que indica possibilidade das dimensões:
+    directions = [True,False,False,False]
+
+
+    last_position = (0,0)
+
+    #Pilha pra DFS e voltar ao começo
+    stack = [(0,0)]
+
+    # pause
+    pause = False
+
+    x_w_init,y_w_init = generate_start()
+    place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
+    x_g,y_g = generate_start()
+    x_g,y_g = x_w_init,y_w_init
+    place_element(x_g,y_g, 'G')
+    for _ in range(3):
+        x_p_init,y_p_init = generate_start()
+        place_element(x_p_init, y_p_init,'P')
+
+    # Posição inicial do jogador
+    player_pos = [0, 0]
+
+    # Última posição do jogador
+    last_position = player_pos
+
+    draw_world()
+    pygame.display.update()
+
+    while running:
+        print(f"Posição wumpus pra matar(WumpusPos={wumpus_position}): ",world[wumpus_position[0]][wumpus_position[1]])
+        if 'P' in world[wumpus_position[0]][wumpus_position[1]]:
+            kill_wumpus()
+            wumpus_position = (0,0)
+        pygame.time.delay(500)
+        shoot_arrow()
+        # logic()
+        # print("Wumpus_position:",wumpus_position)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                # if event.key == pygame.K_UP:
+                #     move_player(-1, 0)
+                #     count_player_moves += 1
+                # elif event.key == pygame.K_DOWN:
+                #     move_player(1, 0)
+                #     count_player_moves += 1
+                # elif event.key == pygame.K_LEFT:
+                #     move_player(0, -1)
+                #     count_player_moves += 1
+                # elif event.key == pygame.K_RIGHT:
+                #     move_player(0, 1)
+                #     count_player_moves += 1
+                if event.key == pygame.K_p:  # Tecla "P" para pausar/despausar
+                    pause = not pause  # Alterna o estado de pausa
+        
+
+
+
+        # print("Player_position_pre_Kcelula: ",player_pos)
+        # Verifica a célula atual
+        update_KB()
+            
+
+        if pause:
+            pause_game()
+            pause = False
+            # text = font.render('PAUSADO', True, (255, 255, 255))
+            # world.blit(text, (350, 250))  # Posiciona o texto na tela
+        # Desenha o jogo
+
+
+        logic()
+        print("KB antes do player mover: ",KB)
+    ################# MOVER PLAYER #########################################################################################################################
+        if count_player_moves <= random_number_up_to_5 or not wumpus_is_alive:
+            logic()
+            move_player_algorithyn()
+            if(last_position != player_pos):
+                count_player_moves += 1
+                points -= 1
+            update_KB()
+            logic()
+            print("KB logo após player_mover: ",KB)
+
+            # print("PlayerPos: ",player_pos)
+            # print("Direction: ",direction)
+            
+            
+            
+    ################# MOVER PLAYER #########################################################################################################################
+        elif wumpus_is_alive:
+    ################## MOVER WUMPUS ##################################################################################################################################
+            random_number_up_to_5 = random.randint(3,5)
+            # pygame.time.delay(1000)
+            
+            move_wumpus()
+            # wumpus_make_noise()
+            count_wumpus_moves+=1
+            # pygame.time.delay(1000)
+            #Apaga os dados do wumpus por ele fazer barulho ao mover:
+            if(count_wumpus_moves > 3):
+                clear_wumpus()
+                count_wumpus_moves = 0
+            update_KB()
+            logic()
+            print("KB depois do Wumpus mover: ",KB)
+            count_player_moves = 0
+    ################## MOVER WUMPUS ##################################################################################################################
+        
+        print("Stack: ",stack)
+        print("player: ",player_pos)
+        window.fill(BLACK)
+        draw_world()
+        pygame.display.update()
+
+    # pygame.quit()
+
+    count_quadrados_visitados = 0 
+    quadrados_visitados = []
+
+    for item in KB:
+        if 'V' in item:
+            quadrados_visitados.append(item.split('V'))
+            count_quadrados_visitados +=1
+    if(have_gold and not died):
+        points += 100
+    if died:
+        points -= 100
+    if count_arrow == 0:
+        points -= 10
+
+    acumuled_points += points
+    print("Quantidade de Quadrados visitados:",count_quadrados_visitados)
+    print("Quadrados visitados:",quadrados_visitados)
+    print("Pontuação do jogo: ",points)
+    print("Acumuled_points: ",acumuled_points)
+pygame.quit()
