@@ -77,6 +77,7 @@ PIT = pygame.image.load("pit.jpg")
 GOLD = pygame.image.load("gold.jpeg")
 BREEZE = pygame.image.load("breeze.jpg")
 STINK = pygame.image.load("stink.jpg")
+WUMPUS_GOLD = pygame.image.load("WG.jpg")
 
 # Redimensiona as imagens para caberem nas células
 PLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE, CELL_SIZE))
@@ -85,14 +86,17 @@ PIT = pygame.transform.scale(PIT, (CELL_SIZE, CELL_SIZE))
 GOLD = pygame.transform.scale(GOLD, (CELL_SIZE, CELL_SIZE))
 BREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE, CELL_SIZE))
 STINK = pygame.transform.scale(STINK, (CELL_SIZE, CELL_SIZE))
+WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
 
 #Imagens de meia célula:
-halfPLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE/2, CELL_SIZE))
-halfWUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE/2, CELL_SIZE))
-halfPIT = pygame.transform.scale(PIT, (CELL_SIZE/2, CELL_SIZE))
-halfGOLD = pygame.transform.scale(GOLD, (CELL_SIZE/2, CELL_SIZE))
-halfBREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE/2, CELL_SIZE))
-halfSTINK = pygame.transform.scale(STINK, (CELL_SIZE/2, CELL_SIZE))
+# halfPLAYER = pygame.transform.scale(PLAYER, (CELL_SIZE/2, CELL_SIZE))
+# halfWUMPUS = pygame.transform.scale(WUMPUS, (CELL_SIZE/2, CELL_SIZE))
+# halfPIT = pygame.transform.scale(PIT, (CELL_SIZE/2, CELL_SIZE))
+# halfGOLD = pygame.transform.scale(GOLD, (CELL_SIZE/2, CELL_SIZE))
+# halfBREEZE = pygame.transform.scale(BREEZE, (CELL_SIZE/2, CELL_SIZE))
+# halfSTINK = pygame.transform.scale(STINK, (CELL_SIZE/2, CELL_SIZE))
+# WUMPUS_GOLD = pygame.transform.scale(WUMPUS_GOLD, (CELL_SIZE, CELL_SIZE))
+
 
 
 # Matriz do jogo
@@ -166,6 +170,23 @@ def shoot_arrow():
                     wumpus_is_alive = False
                     KB = [item for item in KB if 'W' not in item and 'S' not in item]
 
+def kill_wumpus():
+    global player_pos
+    global KB
+    global wumpus_position
+    global wumpus_is_alive
+
+
+    world[wumpus_position[0]][wumpus_position[1]].remove('W')
+    Wumpus_possibilities = neighbours(wumpus_position[0],wumpus_position[1])
+    Wumpus_possibilities = list(Wumpus_possibilities)
+
+    for pos in Wumpus_possibilities:
+        world[pos[0]][pos[1]].remove('S')
+    
+    wumpus_is_alive = False
+    KB = [item for item in KB if 'W' not in item and 'S' not in item]
+
 #Limpa informações sobre o wumpus:
 def clear_wumpus():
     global KB
@@ -192,6 +213,8 @@ def move_wumpus():
     place_element(wumpus_new_position[0], wumpus_new_position[1], 'W')
     print("função pra mover o wumpus")
     wumpus_make_noise()
+
+ 
 
 
 #Função pra encher kb
@@ -578,6 +601,7 @@ def generate_start():
 x_w_init,y_w_init = generate_start()
 place_element(x_w_init, y_w_init, 'W')########## FAZENDO TESTES  mexendo aqui
 x_g,y_g = generate_start()
+x_g,y_g = x_w_init,y_w_init
 place_element(x_g,y_g, 'G')
 for _ in range(3):
     x_p_init,y_p_init = generate_start()
@@ -598,30 +622,19 @@ def draw_world():
 
             # Desenha os elementos da célula
             for element in world[row][col]:
-                if len(element) == 1:
-                    if 'W' in element:
-                        window.blit(WUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'G' in element:
-                        window.blit(GOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'P' in element:
-                        window.blit(PIT, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'B' in element:
-                        window.blit(BREEZE, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'S' in element:
-                        window.blit(STINK, (col * CELL_SIZE, row * CELL_SIZE))
-
-                elif len(element) == 2:
-
-                    if 'W' in element:
-                        window.blit(halfWUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'G' in element:
-                        window.blit(halfGOLD, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'P' in element:
-                        window.blit(halfPIT, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'B' in element:
-                        window.blit(halfBREEZE, (col * CELL_SIZE, row * CELL_SIZE))
-                    elif 'S' in element:
-                        window.blit(halfSTINK, (col * CELL_SIZE, row * CELL_SIZE))
+                # if len(element) == 1:
+                if 'W' in element and 'G' in element:
+                    window.blit(WUMPUS_GOLD, (col * CELL_SIZE, row * CELL_SIZE))
+                if 'W' in element:
+                    window.blit(WUMPUS, (col * CELL_SIZE, row * CELL_SIZE))
+                elif 'G' in element:
+                    window.blit(GOLD, (col * CELL_SIZE, row * CELL_SIZE))
+                elif 'P' in element:
+                    window.blit(PIT, (col * CELL_SIZE, row * CELL_SIZE))
+                elif 'B' in element:
+                    window.blit(BREEZE, (col * CELL_SIZE, row * CELL_SIZE))
+                elif 'S' in element:
+                    window.blit(STINK, (col * CELL_SIZE, row * CELL_SIZE))
 
                     
 
@@ -683,67 +696,6 @@ def pause_game():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     paused = False  # Sai do loop quando 'P' é pressionado
-
-        # Exemplo de texto indicando que o jogo está pausado
-        # world.fill((0, 0, 0))
-        # font = pygame.font.Font(None, 74)
-        # text = font.render("Jogo Pausado. Aperte 'P' para continuar.", True, (255, 255, 255))
-        # world.blit(text, (50, 250))
-        # pygame.display.flip()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def wumpus_close():
@@ -937,12 +889,12 @@ def go_VWP(new_pos_x,new_pos_y):
     w_string = str(new_pos_x)+str(new_pos_y)+'W'
     p_string = str(new_pos_x)+str(new_pos_y)+'P'
     # p_stringDoubt = str(new_pos_x)+str(new_pos_y)+'P?'
-    print("player pos no go_VW_antes de mudar: ",player_pos)
+    print("player pos no go_VWP_antes de mudar: ",player_pos)
     print("x,y:",new_pos_x," ",new_pos_y)
     print("KB usado para MOVER: ",KB)
     if validate_position(new_pos_x,new_pos_y) and w_string not in KB and p_string not in KB :
         player_pos = (new_pos_x,new_pos_y)
-        print("player pos no go_VW: ",player_pos)
+        print("player pos no go_VWP: ",player_pos)
         # directions[0] = True
         return True
     else:
@@ -1267,6 +1219,10 @@ def logic():
     deduce_wumpus_with_KB()
 
 while running:
+    print(f"Posição wumpus pra matar(WumpusPos={wumpus_position}): ",world[wumpus_position[0]][wumpus_position[1]])
+    if 'P' in world[wumpus_position[0]][wumpus_position[1]]:
+        kill_wumpus()
+        wumpus_position = (0,0)
     pygame.time.delay(500)
     shoot_arrow()
     # logic()
